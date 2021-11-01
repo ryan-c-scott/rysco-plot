@@ -1,0 +1,156 @@
+#+options: toc:nil
+
+* Introduction
+Originally developed for my Emacs setup "Ryscomacs", rysco-plot is a domain specific language in Lisp for the gnuplot syntax and tools.
+
+* Installation
+** Using straight.el
+#+begin_src elisp :eval never
+  (straight-use-package '(rysco-graph :type git :repo "git@bitbucket.org:scott105/rysco-graph.git"))
+#+end_src
+
+* Syntax and Examples
+The syntax is somewhat permissive in how it is represented, with general rules applied to convert the mostly free-usage of =:= as a prefix for any argument and vectors/lists to appropriate forms for gnuplot.
+
+** :plot
+#+begin_src elisp :results file :exports both
+  (rysco-plot
+   '(
+     (:set :key fixed left top vertical Right noreverse enhanced autotitle box lt black linewidth 2.000 dashtype solid opaque)
+     (:set :grid)
+     (:set :border lc "white")
+     (:set :title font ",20" textcolor lt -1 norotate tc "white")
+  
+     (:plot [-10 10]
+            (:lines :fun (sin x))
+            (:boxes :fun (sin x * 0.25))
+            (:lines :fun (* x 0.125))))
+   :dimensions '(700 300))
+#+end_src
+
+#+RESULTS:
+[[file:Syntax and Examples--plot.svg]]
+
+** :data
+Data is provided to gnuplot by embedding directly into the file. Note that this may not be sufficient for large datasets.
+
+This example uses the following table as input into a ~:data~ entry and uses that for plotting some boxes.
+
+#+name: in
+|  x |  y |
+|----+----|
+|  1 | 10 |
+| 10 | 28 |
+| 15 |  3 |
+| 18 | 15 |
+| 28 | 30 |
+| 30 | 18 |
+| 33 | 7  |
+
+
+#+begin_src elisp :results file :exports both :var in=in
+    (rysco-plot
+     `(
+       (:set :key fixed left top vertical Right noreverse enhanced autotitle box lt black linewidth 2.000 dashtype solid opaque)
+       (:set :grid)
+       (:set :border lc "white")
+       (:set :title font ",20" textcolor lt -1 norotate tc "white")
+  
+       (:data testdata ,@in)
+       (:set :yrange [0 *])
+  
+       (:set :title "BOXES!!!")
+       (:set :style fill solid 0.25 border)
+  
+       (:plot [* *]
+              (:boxes :data testdata :using [1 2]))
+       )
+     :dimensions '(700 300))
+#+end_src
+
+#+RESULTS:
+[[file:Syntax and Examples--data.svg]]
+
+*** :plot-date-log
+A convenience for when working with dated logs of where there is a row per date.
+That data can be supplied as values or an entry can be treated as boolean.
+
+#+name: date-log
+|       Date | Note |
+|------------+------|
+| 2019-09-05 |      |
+| 2019-09-10 |      |
+| 2019-09-12 |      |
+| 2019-09-15 |      |
+| 2019-09-17 |      |
+| 2019-09-21 |      |
+| 2019-09-28 |      |
+| 2019-10-04 |      |
+| 2019-10-07 |      |
+| 2019-10-12 |      |
+| 2019-10-16 |      |
+| 2019-10-19 |      |
+| 2019-10-23 |      |
+| 2019-11-01 |      |
+| 2019-11-07 |      |
+| 2019-11-10 |      |
+| 2019-11-13 |      |
+| 2019-11-16 |      |
+| 2019-11-18 |      |
+| 2019-11-24 |      |
+| 2019-11-27 |      |
+| 2019-12-08 |      |
+| 2019-12-10 |      |
+| 2019-12-11 |      |
+| 2019-12-13 |      |
+| 2019-12-14 |      |
+| 2019-12-15 |      |
+| 2019-12-16 |      |
+| 2019-12-17 |      |
+| 2019-12-19 |      |
+| 2019-12-21 |      |
+| 2019-12-24 |      |
+| 2019-12-26 |      |
+| 2019-12-28 |      |
+| 2019-12-31 |      |
+| 2020-01-01 |      |
+| 2020-01-02 |      |
+| 2020-01-04 |      |
+| 2020-01-06 |      |
+| 2020-01-07 |      |
+| 2020-01-08 |      |
+| 2020-01-11 |      |
+| 2020-01-13 |      |
+| 2020-01-14 |      |
+| 2020-01-16 |      |
+| 2020-01-18 |      |
+| 2020-01-19 |      |
+| 2020-01-20 |      |
+
+#+begin_src elisp :var in=date-log :results file :exports both
+  (rysco-plot
+   `(
+     ,@(loop
+        for id in '(1 2 3 4) collect
+        `(:set :linetype ,id :linewidth 1.5))
+  
+     (:set :key fixed left top vertical Right noreverse enhanced autotitle box lt black linewidth 2.000 dashtype solid opaque)
+     (:set :grid)
+     (:set :border lc "white")
+     (:set :title font ",20" textcolor lt -1 norotate tc "white")
+  
+  
+     ;; (:set :multiplot :layout (2 1))
+  
+     (:data datelogdata ,@(rysco-org-process-date-log in '(7 14 30)))
+     (:plot-date-log :title "Rolling Averages"
+                     :data datelogdata :end "2020-01-20"
+                     :col 3
+                     :map ("7-day avg." "14-day avg." "30-day avg."))
+  
+     ) :dimensions '(700 400))
+  
+#+end_src
+
+#+RESULTS:
+[[file:Syntax and Examples--data--plot-date-log.svg]]
