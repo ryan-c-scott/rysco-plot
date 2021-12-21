@@ -1,4 +1,5 @@
 ;;; -*- lexical-binding: t; -*-
+(require 'cl)
 
 (cl-defun rysco-plot--guess-filename (&optional ext)
   (when (boundp 'out)
