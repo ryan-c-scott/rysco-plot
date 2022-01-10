@@ -162,7 +162,7 @@
 
    ))
 
-(cl-defun rysco-plot--render (form &key filename as-code)
+(cl-defun rysco-plot--render (form &key filename as-code debug-data)
   "Generate gnuplot file from `FORM' and render image from it."
   (let ((path (f-full filename)))
     (with-temp-buffer
@@ -176,7 +176,7 @@
            (format "%s = %s" name value)))
 
          (`(:data ,name . ,data)
-          (if as-code
+          (if (and as-code (not debug-data))
               (insert "<<DATA OMITTED>>")
             (rysco-plot--render-data name data)))
 
@@ -234,11 +234,12 @@
              (_ `(,el))))))
 
 ;;;###autoload
-(cl-defun rysco-plot (form &key filename as-code type dimensions)
+(cl-defun rysco-plot (form &key filename as-code debug-data type dimensions)
   (rysco-plot--render
    (rysco-plot--process form :type type :dimensions dimensions)
    :filename (or filename (rysco-plot--guess-filename (and type (format "%s" type))))
-   :as-code as-code))
+   :as-code as-code
+   :debug-data debug-data))
 
 ;;
 (provide 'rysco-plot)
