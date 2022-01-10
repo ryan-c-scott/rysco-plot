@@ -269,6 +269,35 @@ Data Format:
         collect
         `(:lines :data ,data :using [1 ,i] :title ,period-title)))))
 
+(cl-defun rysco-plot--process-dependency-matrix (&key title data)
+  `((:set :title ,title)
+    (:unset key)
+
+    (:set yrange [* *] :reverse)
+
+    (:set size ratio 1)
+
+    (:set xtics rotate by 90 right)
+    (:set ytics right)
+
+    (:set link x)
+    (:set link y)
+
+    (:set x2tics 1 format "" scale (0 0.001))
+    (:set y2tics 1 format "" scale (0 0.001))
+
+    (:set mx2tics 2)
+    (:set my2tics 2)
+
+    (:set xtics 5 out nomirror)
+    (:set ytics 5 out nomirror)
+
+    (:set grid front mx2tics my2tics lw 0.5 lt -1 lc rgb "black")
+
+    (:plot
+     (:image-pixel :data (,data :matrix :columnheaders :rowheaders))
+     (:lines :fun x))))
+
 (cl-defun rysco-plot--process (form &key type dimensions)
   "Expand all special commands and inject default forms for the conversion to gnuplot."
   (append `((:set :terminal
@@ -285,6 +314,8 @@ Data Format:
            (pcase el
              (`(:plot-date-log . ,rest)
               (apply 'rysco-plot--process-date-log rest))
+             (`(:plot-dependency-matrix . ,rest)
+              (apply 'rysco-plot--process-dependency-matrix rest))
              (_ `(,el))))))
 
 ;;;###autoload
