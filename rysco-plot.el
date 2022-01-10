@@ -165,7 +165,10 @@
            (rysco-plot--key-to-string k)
            " ")
           (rysco-plot--render-element v))))
-      (insert (format " with %s" (rysco-plot--key-to-string type)))))
+      (insert (format " with %s"
+                      (pcase type
+                        (:image-pixel "image pixel")
+                        (_ (rysco-plot--key-to-string type)))))))
 
    do (insert (concat (unless skip-sep ",") " "))
 
