@@ -113,6 +113,43 @@
   (insert "EOD\n")
   (insert "set datafile separator \",\"\n"))
 
+(cl-defun rysco-plot--render-dependency-data (name data)
+  "Renders data as a dependency sorted table.
+
+Data Format:
+  '(((a . \"System A\") (b . 1))
+    ((b . \"System B\") (c . 5))
+    ((c . \"System C\")))"
+
+  (let* ((names (--map (caar it) data))
+         (labels (--map (car it) data))
+         (systems (loop
+                   for ((sys . _) . deps) in data collect
+                   `(,sys . ,(--map (if (listp it) it `(,it . 1)) deps))))
+         (scores (--map (cons (car it) (length (cdr it))) systems))
+         (names (--sort
+                 (> (or (cdr (assoc it scores)) 0) (or (cdr (assoc other scores)) 0))
+                 names)))
+
+    (rysco-plot--render-data
+     name
+     (cons
+      (cons "" (--map (cdr (assoc it labels)) names))
+      (loop
+       for r in names
+       collect
+       (cons
+        (cdr (assoc r labels))
+        (loop
+         for c in names
+         as deps = (cdr (assoc c systems))
+         as weight = (cdr (assoc r deps))
+         collect
+         (cond
+          ((equal r c) 0)
+          (weight weight)
+          (t 0)))))))))
+
 (cl-defun rysco-plot--render-plot (data)
   (insert "plot ")
   (loop
@@ -191,6 +228,11 @@
           (if (and as-code (not debug-data))
               (insert "<<DATA OMITTED>>")
             (rysco-plot--render-data name data)))
+
+         (`(:dependency-data ,name . ,data)
+          (if (and as-code (not debug-data))
+              (insert "<<DATA OMITTED>>")
+            (rysco-plot--render-dependency-data name data)))
 
          (`(:plot . ,data)
           (rysco-plot--render-plot data))
