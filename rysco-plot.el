@@ -99,10 +99,19 @@
   (loop
    for entry in data do
    (loop
+    with sep
     for el in entry do
-    (insert (format "%s " el)))
+    (insert
+     (format
+      "%s%s"
+      (or sep "")
+      (pcase el
+        ((pred stringp) (concat "\"" el "\""))
+        (_ el))))
+    as sep = ", ")
    do (insert "\n"))
-  (insert "EOD\n"))
+  (insert "EOD\n")
+  (insert "set datafile separator \",\"\n"))
 
 (cl-defun rysco-plot--render-plot (data)
   (insert "plot ")
