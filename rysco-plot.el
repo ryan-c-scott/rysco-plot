@@ -130,7 +130,16 @@
        for (k v) on plot-data by 'cddr do
        (pcase k
          (:data
-          (insert (format "$%s " v)))
+          (insert
+           (pcase v
+             (`(,name . ,options)
+              (concat
+               (format "$%s " name)
+               (loop
+                for el in options concat
+                (rysco-plot--key-to-string el)
+                concat " ")))
+             (_ (format "$%s " v)))))
 
          (:using
           (insert
