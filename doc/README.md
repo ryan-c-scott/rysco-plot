@@ -26,7 +26,7 @@ The syntax is somewhat permissive in how it is represented, with general rules a
        (:set :grid)
        (:set :border lc "white")
        (:set :title font ",20" textcolor lt -1 norotate tc "white")
-
+    
        (:plot [-10 10]
               (:lines :fun (sin x))
               (:boxes :fun (sin x * 0.25))
@@ -42,7 +42,7 @@ Data is provided to gnuplot by embedding directly into the file. Note that this 
 
 This example uses the following table as input into a `:data` entry and uses that for plotting some boxes.
 
-<table id="org939c711" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<table id="orgf407d3e" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
 <colgroup>
@@ -127,7 +127,7 @@ This example uses the following table as input into a `:data` entry and uses tha
 A convenience for when working with dated logs of where there is a row per date.
 That data can be supplied as values or an entry can be treated as boolean.
 
-<table id="orgac000fa" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<table id="orgc12e1a9" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
 <colgroup>
@@ -455,4 +455,7 @@ That data can be supplied as values or an entry can be treated as boolean.
        ) :dimensions '(700 400))
 
 ![img](Syntax and Examples--data--plot-date-log.svg)
+
+*Note: `rysco-org-process-date-log` is not included*
+*It generates a table with rolling averages for specified intervals, one per column*
 

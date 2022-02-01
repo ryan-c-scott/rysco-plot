@@ -154,3 +154,6 @@ That data can be supplied as values or an entry can be treated as boolean.
 
 #+RESULTS:
 [[file:Syntax and Examples--data--plot-date-log.svg]]
+
+/Note: =rysco-org-process-date-log= is not included/
+/It generates a table with rolling averages for specified intervals, one per column/
