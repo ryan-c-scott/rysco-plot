@@ -44,6 +44,12 @@
         (substring s 1)
       s)))
 
+(cl-defun rysco-plot--render-options (options)
+  (loop
+   for el in options do
+   (rysco-plot--render-element el)
+   (insert " ")))
+
 (cl-defun rysco-plot--render-range (range)
   (insert
    "["
@@ -154,6 +160,7 @@ Data Format:
   (insert "plot ")
   (loop
    for plot in data
+   as plot-options = nil
    as skip-sep = nil
    do
 
@@ -167,16 +174,15 @@ Data Format:
        for (k v) on plot-data by 'cddr do
        (pcase k
          (:data
-          (insert
-           (pcase v
-             (`(,name . ,options)
-              (concat
-               (format "$%s " name)
-               (loop
-                for el in options concat
-                (rysco-plot--key-to-string el)
-                concat " ")))
-             (_ (format "$%s " v)))))
+          (pcase v
+            (`(,name . ,options)
+             (insert (format "$%s " name))
+             (rysco-plot--render-options options))
+            (_ (insert (format "$%s " v)))))
+
+         (:options
+          (when (listp v)
+            (setq plot-options v)))
 
          (:using
           (insert
@@ -205,11 +211,12 @@ Data Format:
       (insert (format " with %s"
                       (pcase type
                         (:image-pixel "image pixel")
-                        (_ (rysco-plot--key-to-string type)))))))
+                        (_ (rysco-plot--key-to-string type)))))
+      (when plot-options
+        (insert " ")
+        (rysco-plot--render-options plot-options))))
 
-   do (insert (concat (unless skip-sep ",") " "))
-
-   ))
+   do (insert (concat (unless skip-sep ",") " "))))
 
 (cl-defun rysco-plot--render (form &key filename as-code debug-data)
   "Generate gnuplot file from `FORM' and render image from it."
