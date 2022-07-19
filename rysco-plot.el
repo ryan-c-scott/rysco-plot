@@ -156,6 +156,26 @@ Data Format:
           (weight weight)
           (t 0)))))))))
 
+(cl-defun rysco-plot--render-tics (name options data)
+  (insert (format "set %stics " name))
+  (rysco-plot--render-options options)
+  (insert
+   " ("
+   (s-join
+    ", "
+    (loop
+     for entry in data collect
+     (pcase entry
+       (`(,label ,val . ,rest)
+        (format "\"%s\" %s %s"
+                label
+                val
+                (or (car rest) "")))
+       (_
+        (format "%s" entry)))
+     ))
+   ")"))
+
 (cl-defun rysco-plot--render-plot (data)
   (insert "plot ")
   (loop
@@ -240,6 +260,9 @@ Data Format:
           (if (and as-code (not debug-data))
               (insert "<<DATA OMITTED>>")
             (rysco-plot--render-dependency-data name data)))
+
+         ((and `(:tics ,name . ,_) (map :options :data))
+          (rysco-plot--render-tics name options data))
 
          (`(:plot . ,data)
           (rysco-plot--render-plot data))
