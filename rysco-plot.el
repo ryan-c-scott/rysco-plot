@@ -328,7 +328,7 @@ Data Format:
      (:image-pixel :data (,data :matrix :columnheaders :rowheaders))
      (:lines :fun x))))
 
-(cl-defun rysco-plot--process (form &key type dimensions background)
+(cl-defun rysco-plot--process (form &key type dimensions fontscale background)
   "Expand all special commands and inject default forms for the conversion to gnuplot."
   (append `((:set :terminal
                   ,(pcase type
@@ -336,7 +336,7 @@ Data Format:
                      ('nil "svg")
                      (_ type))
                   enhanced
-                  font "helvetica,12" fontscale 1.0
+                  font "helvetica,12" fontscale ,(or fontscale 1.0)
                   size ,(or dimensions '(800 700))
                   background rgb ,(or background "#ffffff00")))
           (loop
@@ -349,9 +349,9 @@ Data Format:
              (_ `(,el))))))
 
 ;;;###autoload
-(cl-defun rysco-plot (form &key filename as-code debug-data type dimensions background)
+(cl-defun rysco-plot (form &key filename as-code debug-data type dimensions fontscale background)
   (rysco-plot--render
-   (rysco-plot--process form :type type :dimensions dimensions :background background)
+   (rysco-plot--process form :type type :dimensions dimensions :fontscale fontscale :background background)
    :filename (or filename (rysco-plot--guess-filename (and type (format "%s" type))))
    :as-code as-code
    :debug-data debug-data))
