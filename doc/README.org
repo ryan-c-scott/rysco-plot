@@ -130,7 +130,7 @@ That data can be supplied as values or an entry can be treated as boolean.
 #+begin_src elisp :var in=date-log :results file :exports both
   (rysco-plot
    `(
-     ,@(loop
+     ,@(cl-loop
         for id in '(1 2 3 4) collect
         `(:set :linetype ,id :linewidth 1.5))
   

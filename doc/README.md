@@ -434,7 +434,7 @@ That data can be supplied as values or an entry can be treated as boolean.
 
     (rysco-plot
      `(
-       ,@(loop
+       ,@(cl-loop
           for id in '(1 2 3 4) collect
           `(:set :linetype ,id :linewidth 1.5))
     

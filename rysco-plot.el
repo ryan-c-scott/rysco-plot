@@ -16,7 +16,7 @@
     (`(,func . ,params)
      (pcase func
        ((or '* '/ '+ '-)
-        (loop
+        (cl-loop
          with last
          with op = (format "%s" func)
          for chunk in params
@@ -45,7 +45,7 @@
       s)))
 
 (cl-defun rysco-plot--render-options (options)
-  (loop
+  (cl-loop
    for el in options do
    (rysco-plot--render-element el)
    (insert " ")))
@@ -89,7 +89,7 @@
       (insert (format "%s" el)))))
 
 (cl-defun rysco-plot--render-generic-entry (entry)
-  (loop
+  (cl-loop
    for el in entry
    do
    (rysco-plot--render-element el)
@@ -102,9 +102,9 @@
 
 (cl-defun rysco-plot--render-data (name data)
   (insert (format "$%s << EOD\n" name))
-  (loop
+  (cl-loop
    for entry in data do
-   (loop
+   (cl-loop
     with sep
     for el in entry do
     (insert
@@ -129,7 +129,7 @@ Data Format:
 
   (let* ((names (--map (caar it) data))
          (labels (--map (car it) data))
-         (systems (loop
+         (systems (cl-loop
                    for ((sys . _) . deps) in data collect
                    `(,sys . ,(--map (if (listp it) it `(,it . 1)) deps))))
          (scores (--map (cons (car it) (length (cdr it))) systems))
@@ -141,12 +141,12 @@ Data Format:
      name
      (cons
       (cons "" (--map (cdr (assoc it labels)) names))
-      (loop
+      (cl-loop
        for r in names
        collect
        (cons
         (cdr (assoc r labels))
-        (loop
+        (cl-loop
          for c in names
          as deps = (cdr (assoc c systems))
          as weight = (cdr (assoc r deps))
@@ -163,7 +163,7 @@ Data Format:
    " ("
    (s-join
     ", "
-    (loop
+    (cl-loop
      for entry in data collect
      (pcase entry
        (`(,label ,val . ,rest)
@@ -178,7 +178,7 @@ Data Format:
 
 (cl-defun rysco-plot--render-plot (data)
   (insert "plot ")
-  (loop
+  (cl-loop
    for plot in data
    as plot-options = nil
    as skip-sep = nil
@@ -190,7 +190,7 @@ Data Format:
       (rysco-plot--render-range plot))
 
      ((and `(,type . ,plot-data) (guard (rysco-plot--key-p type)))
-      (loop
+      (cl-loop
        for (k v) on plot-data by 'cddr do
        (pcase k
          (:data
@@ -244,7 +244,7 @@ Data Format:
     (with-temp-buffer
       (insert (format "set output \"%s\"\n" path))
 
-      (loop
+      (cl-loop
        for entry in form do
        (pcase entry
          (`(:env ,name ,value)
@@ -293,7 +293,7 @@ Data Format:
     (:set :yrange [,(or miny '*) ,(or maxy '*)])
 
     (:plot
-     ,@(loop
+     ,@(cl-loop
         for period-title in map
         for i from (or col 3)
         collect
@@ -339,7 +339,7 @@ Data Format:
                   font "helvetica,12" fontscale ,(or fontscale 1.0)
                   size ,(or dimensions '(800 700))
                   background rgb ,(or background "#ffffff00")))
-          (loop
+          (cl-loop
            for el in form append
            (pcase el
              (`(:plot-date-log . ,rest)
