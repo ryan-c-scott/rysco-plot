@@ -179,9 +179,13 @@ Data Format:
 (cl-defun rysco-plot--render-plot (data)
   (insert "plot ")
   (cl-loop
+   with plot-count = (length data)
+
+   for i from 1
    for plot in data
+
    as plot-options = nil
-   as skip-sep = nil
+   as skip-sep = (= i plot-count)
    do
 
    (pcase plot
