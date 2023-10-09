@@ -1,6 +1,9 @@
 ;;; -*- lexical-binding: t; -*-
 (require 'cl)
 
+(defvar rysco-plot-error-buffer-name "*gnuplot errors*"
+  "Buffer name to use when reporting error output from gnuplot")
+
 (cl-defun rysco-plot--guess-filename (&optional ext)
   (when (boundp 'out)
     out)
@@ -242,6 +245,28 @@ Data Format:
 
    do (insert (concat (unless skip-sep ",") " "))))
 
+(cl-defun rysco-plot--mark-errors (errors)
+  (cl-loop
+   with info = (-partition-all 6 (s-split "\n" errors))
+   for (_ line pointer err _) in info
+   do
+   (pcase-let* (((rx (* any) "line " (let line (+ digit)) ": " (let msg (+ any))) err)
+                (beg))
+     (save-excursion
+       (goto-char (point-min))
+       (forward-line (1- (cl-parse-integer line)))
+       (setq beg (point))
+       (forward-line 1)
+       (--when-let (make-overlay beg (point))
+         (overlay-put it 'after-string (propertize (format "%s\n\t%s\n" pointer msg) 'face 'font-lock-warning-face)))))))
+
+(cl-defun rysco-plot-report-errors (code errors)
+  (with-current-buffer (get-buffer-create rysco-plot-error-buffer-name)
+    (remove-overlays)
+    (erase-buffer)
+    (insert code)
+    (rysco-plot--mark-errors errors)))
+
 (cl-defun rysco-plot--render (form &key filename as-code debug-data)
   "Generate gnuplot file from `FORM' and render image from it."
   (let ((path (f-full filename)))
@@ -281,9 +306,12 @@ Data Format:
        (t
         (let* ((temp-path (make-temp-file "rysco" nil ".plot")))
           (write-file temp-path)
-          ;; TODO: Evaluate output for errors.
-          (shell-command-to-string
-           (rysco-plot-gnuplot-command temp-path))
+
+          (let ((output (shell-command-to-string
+                         (rysco-plot-gnuplot-command temp-path))))
+            (unless (string-empty-p output)
+              (message "Error in plotting. See %s" rysco-plot-error-buffer-name)
+              (rysco-plot-report-errors (buffer-string) output)))
 
           (delete-file temp-path))
         filename)))))
