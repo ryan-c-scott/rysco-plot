@@ -247,18 +247,23 @@ Data Format:
 
 (cl-defun rysco-plot--mark-errors (errors)
   (cl-loop
-   with info = (-partition-all 6 (s-split "\n" errors))
-   for (_ line pointer err _) in info
-   do
+   for err in (s-split "\n" errors) do
    (pcase-let* (((rx (* any) "line " (let line (+ digit)) ": " (let msg (+ any))) err)
+                (line (and (stringp line) (cl-parse-integer line :junk-allowed t)))
                 (beg))
-     (save-excursion
-       (goto-char (point-min))
-       (forward-line (1- (cl-parse-integer line)))
-       (setq beg (point))
-       (forward-line 1)
-       (--when-let (make-overlay beg (point))
-         (overlay-put it 'after-string (propertize (format "%s\n\t%s\n" pointer msg) 'face 'font-lock-warning-face)))))))
+     (when line
+       (save-excursion
+         (goto-char (point-min))
+         (forward-line (1- line))
+         (setq beg (point))
+         (forward-line 1)
+
+         (let* ((ovr (or (car (overlays-at beg))
+                         (make-overlay beg (point))))
+                (existing (overlay-get ovr 'after-string))
+                (ovr-msg (concat (when existing (concat existing "\n"))
+                                 (propertize msg 'face 'font-lock-warning-face))))
+           (overlay-put ovr 'after-string ovr-msg)))))))
 
 (cl-defun rysco-plot-report-errors (code errors)
   (with-current-buffer (get-buffer-create rysco-plot-error-buffer-name)
