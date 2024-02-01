@@ -4,6 +4,9 @@
 (defvar rysco-plot-error-buffer-name "*gnuplot errors*"
   "Buffer name to use when reporting error output from gnuplot")
 
+(defvar rysco-plot-show-source-buffer nil
+  "Retain the source generated source code, regardless of success/failure.")
+
 (cl-defun rysco-plot--guess-filename (&optional ext)
   (when (boundp 'out)
     out)
@@ -312,10 +315,15 @@ Data Format:
         (let* ((temp-path (make-temp-file "rysco" nil ".plot")))
           (write-file temp-path)
 
-          (let ((output (shell-command-to-string
-                         (rysco-plot-gnuplot-command temp-path))))
-            (unless (string-empty-p output)
-              (message "Error in plotting. See %s" rysco-plot-error-buffer-name)
+          (let* ((output (shell-command-to-string
+                          (rysco-plot-gnuplot-command temp-path)))
+                 (has-errors (not (string-empty-p output)))
+                 (preserve-code (or has-errors rysco-plot-show-source-buffer)))
+
+            (when has-errors
+              (warn "Error in plotting. See %s" rysco-plot-error-buffer-name))
+
+            (when preserve-code
               (rysco-plot-report-errors (buffer-string) output)))
 
           (delete-file temp-path))
