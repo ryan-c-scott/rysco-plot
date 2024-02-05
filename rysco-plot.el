@@ -248,25 +248,31 @@ Data Format:
 
    do (insert (concat (unless skip-sep ",") " "))))
 
+(cl-defun rysco-plot-process-errors (output)
+  (cl-loop
+   with errors
+   for err in (s-split "\n" output) do
+   (pcase-let* (((rx (* any) "line " (let line (+ digit)) ": " (let msg (+ any))) err)
+                (line (and (stringp line) (cl-parse-integer line :junk-allowed t))))
+     (when line
+       (push `(line . msg) errors)))
+   finally return errors))
+
 (cl-defun rysco-plot--mark-errors (errors)
   (cl-loop
-   for err in (s-split "\n" errors) do
-   (pcase-let* (((rx (* any) "line " (let line (+ digit)) ": " (let msg (+ any))) err)
-                (line (and (stringp line) (cl-parse-integer line :junk-allowed t)))
-                (beg))
-     (when line
-       (save-excursion
-         (goto-char (point-min))
-         (forward-line (1- line))
-         (setq beg (point))
-         (forward-line 1)
+   for (line . msg) in errors do
+   (save-excursion
+     (goto-char (point-min))
+     (forward-line (1- line))
+     (setq beg (point))
+     (forward-line 1)
 
-         (let* ((ovr (or (car (overlays-at beg))
-                         (make-overlay beg (point))))
-                (existing (overlay-get ovr 'after-string))
-                (ovr-msg (concat (when existing (concat existing "\n"))
-                                 (propertize msg 'face 'font-lock-warning-face))))
-           (overlay-put ovr 'after-string ovr-msg)))))))
+     (let* ((ovr (or (car (overlays-at beg))
+                     (make-overlay beg (point))))
+            (existing (overlay-get ovr 'after-string))
+            (ovr-msg (concat (when existing (concat existing "\n"))
+                             (propertize msg 'face 'font-lock-warning-face))))
+       (overlay-put ovr 'after-string ovr-msg)))))
 
 (cl-defun rysco-plot-report-errors (code errors)
   (with-current-buffer (get-buffer-create rysco-plot-error-buffer-name)
@@ -317,14 +323,14 @@ Data Format:
 
           (let* ((output (shell-command-to-string
                           (rysco-plot-gnuplot-command temp-path)))
-                 (has-errors (not (string-empty-p output)))
-                 (preserve-code (or has-errors rysco-plot-show-source-buffer)))
+                 (errors (rysco-plot-process-errors output))
+                 (preserve-code (or errors rysco-plot-show-source-buffer)))
 
-            (when has-errors
+            (when errors
               (warn "Error in plotting. See %s" rysco-plot-error-buffer-name))
 
             (when preserve-code
-              (rysco-plot-report-errors (buffer-string) output)))
+              (rysco-plot-report-errors (buffer-string) errors)))
 
           (delete-file temp-path))
         filename)))))
