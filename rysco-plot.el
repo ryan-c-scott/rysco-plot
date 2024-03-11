@@ -256,7 +256,7 @@ Data Format:
    (pcase-let* (((rx (* any) "line " (let line (+ digit)) ": " (let msg (+ any))) err)
                 (line (and (stringp line) (cl-parse-integer line :junk-allowed t))))
      (when line
-       (push `(line . msg) errors)))
+       (push `(,line . ,msg) errors)))
    finally return errors))
 
 (cl-defun rysco-plot--mark-errors (errors)
@@ -272,7 +272,8 @@ Data Format:
                      (make-overlay beg (point))))
             (existing (overlay-get ovr 'after-string))
             (ovr-msg (concat (when existing (concat existing "\n"))
-                             (propertize msg 'face 'font-lock-warning-face))))
+                             (propertize msg 'face 'font-lock-warning-face)
+                             "\n")))
        (overlay-put ovr 'after-string ovr-msg)))))
 
 (cl-defun rysco-plot-report-errors (code errors)
