@@ -381,7 +381,7 @@ Data Format:
 
     (:set yrange [* *] :reverse)
 
-    (:set size ratio 1)
+    (:set size square)
 
     (:set xtics rotate by 90 right)
     (:set ytics right)
@@ -395,10 +395,14 @@ Data Format:
     (:set mx2tics 2)
     (:set my2tics 2)
 
-    (:set xtics 5 out nomirror)
-    (:set ytics 5 out nomirror)
+    (:set xtics 5 out nomirror :textcolor "white")
+    (:set ytics 5 out nomirror :textcolor "white")
 
     (:set grid front mx2tics my2tics lw 0.5 lt -1 lc rgb "black")
+
+    (:set :border lc "white")
+    (:set style line 1 lc "yellow")
+    (:palette (0 "white") (1 "green"))
 
     (:plot
      (:image-pixel :data (,data :matrix :columnheaders :rowheaders))
