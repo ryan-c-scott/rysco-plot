@@ -182,6 +182,26 @@ Data Format:
      ))
    ")"))
 
+(cl-defun rysco-plot--render-palette (data)
+  (insert "set palette model RGB\n")
+  (insert "set palette defined (")
+  (cl-loop
+   for i from 0
+   for (val color) in data
+   do (insert
+       (format
+        "%s  %s %s"
+        (if (> i 0)
+            ","
+          " ")
+        val
+        (pcase color
+          ((pred stringp)
+           (concat "\"" color "\""))
+          (_ color))))
+   )
+  (insert ")\n"))
+
 (cl-defun rysco-plot--render-plot (data)
   (insert "plot ")
   (cl-loop
@@ -308,6 +328,9 @@ Data Format:
 
          ((and `(:tics ,name . ,_) (map :options :data))
           (rysco-plot--render-tics name options data))
+
+         (`(:palette . ,data)
+          (rysco-plot--render-palette data))
 
          (`(:plot . ,data)
           (rysco-plot--render-plot data))
